@@ -44,9 +44,29 @@ export interface AttributesProduct {
 }
 
 //
+interface Creator{
+  username:string
+  lastname:string
+  firstname:string
+  role:string
+  image:string
+  mobile:string
+  email:string
+}
+interface Categrys{
+  title:string
+  metatitle:string
+  image:string
+  content:string
+  slug:string
+}
+interface Review{
+  title:string
+  rating:number
+  content:string
+}
 export interface OutPutProductsOnCategory {
   id: number;
-  userId: number;
   title: string;
   metatitle?: string;
   slug?: string;
@@ -54,11 +74,14 @@ export interface OutPutProductsOnCategory {
   type: string;
   images?: string[];
   sku: string;
-  price: number;
+  price?: number;
   discount?: number;
-  quantity: number;
-  shop: number;
+  quantity?: number;
+  shop?: number;
   content?: string;
+  user:Creator
+  categorys:Categrys | Categrys[]
+  review:Review
 }
 
 export interface UpdateProduct {
@@ -131,7 +154,7 @@ export default class Products extends Model<AttributesProduct, ProductInput> {
   @Column({ type: DataType.SMALLINT })
   quantity!: number;
 
-  @AllowNull(false)
+  @Default(0)
   @Column({ type: DataType.TINYINT })
   shop!: number;
 

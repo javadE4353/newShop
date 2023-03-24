@@ -1,3 +1,12 @@
+import { OutPutProductsOnCategory } from "./models/bo/Product.js";
+
+interface Review{
+  title:string
+  content:string
+  productId:number
+  rating:number
+}
+
 export {};
 
 declare global {
@@ -28,6 +37,9 @@ declare global {
       username: string;
       role:number;
       userId:number;
+      product:OutPutProductsOnCategory;
+      review:Review;
+      productId:number;
     }
     interface Response {}
   }

@@ -1,19 +1,26 @@
 import Products, { ProductInput, UpdateProduct } from "../models/bo/Product.js";
 import Product_category from "../models/bo/product_category.js";
 import _ from "lodash";
-import { Op } from "sequelize";
+import { Op, Transaction } from "sequelize";
 import Categorys from "../models/bo/Category.js";
 import User from "../models/bo/User.js";
 import { RemoveImage } from "../helper/removeImage.js";
+import { Product_review } from "../models/index.js";
 
 //InsertProductOnCategory
 export const InsertProductOnCategory = async (
   categoryId: number,
-  productId: number
+  productId: number,
+  t:Transaction
+
 ): Promise<boolean> => {
-  const insertProOnCate = await Product_category.create({ categoryId, productId });
+  const cat= await Categorys.findByPk(categoryId,{transaction:t});
+  if(!cat){
+     throw new Error("error")
+  }
+  const insertProOnCate = await Product_category.create({ categoryId, productId },{transaction:t});
   if (!insertProOnCate) {
-    return false;
+    throw new Error("error")
   } else {
     return true;
   }
@@ -21,11 +28,12 @@ export const InsertProductOnCategory = async (
 //UpdateProductOnCategory
 export const UpdateProductOnCategory = async (
   categoryId: number,
-  productId: number
+  productId: number,
+  t?:Transaction
 ): Promise<boolean> => {
-  const updateProOnCate = await Product_category.findOne({where: { productId }});
+  const updateProOnCate = await Product_category.findOne({where: { productId },transaction:t});
   if (!updateProOnCate) {
-    return false;
+    throw new Error("error")
   } else {
     updateProOnCate.set({
       categoryId,
@@ -35,22 +43,11 @@ export const UpdateProductOnCategory = async (
     return true;
   }
 };
-
-export const CreateProduct = async (data: ProductInput): Promise<boolean> => {
+//
+export const CreateProduct = async (data: ProductInput,t:Transaction): Promise<number> => {
   const dataPro = _.omit(data, ["categoryId"]);
-  const product = await Products.create({ ...dataPro, userId: Number(data.userId) });
-  if (data.categoryId && product) {
-    const cat= await Categorys.findByPk(data.categoryId);
-    if(!cat){
-       return false
-    }
-    const tableJoin: boolean = await InsertProductOnCategory(data.categoryId, product.id);
-    return tableJoin ? true : false;
-  } else if (!product) {
-    return false;
-  } else {
-    return true;
-  }
+  const product = await Products.create({ ...dataPro, userId: Number(data.userId) },{transaction:t});
+  return product?product.id:0
 };
 
 // GetProductByTitel
@@ -64,6 +61,9 @@ export const GetProductsByTitle = async (productTitle: string) => {
       },
       {
         model: User,
+      },
+      {
+        model: Product_review,
       },
     ],
   });
@@ -80,34 +80,29 @@ export const GetProductsByTitle = async (productTitle: string) => {
 
 //GetProductById
 export const GetProductById = async (productId: number) => {
-  const pro = await Products.findAll({
+  const pro = await Products.findOne({
     where: { id: productId },
     include: [
       {
         model: Categorys,
         through: { attributes: [] },
       },
-      //   {
-      //     model: User,
-      //   },
+        {
+          model: User,
+        },
     ],
   });
-
-  if (!pro) {
-    return false;
-  } else {
-    return pro;
-  }
+ return pro?pro:false
 };
 //UpdateProduct
-export const UpdateProductById = async (data: UpdateProduct, productId: number) => {
+export const UpdateProductById = async (data: UpdateProduct, productId: number,  t:Transaction) => {
   const dataPro = _.omit(data, ["categoryId"]);
-  const update = await Products.update(dataPro, { where: { id: productId } });
-  if (data?.categoryId && update[0]) {
-    const tableJoin = await UpdateProductOnCategory(data.categoryId, productId);
-    return tableJoin;
+  const update = await Products.update(dataPro, { where: { id: productId },transaction:t });
+  if(!!update[0] ){
+   return true
+  }else{
+   throw new Error("error")
   }
-  return !!update[0] ? true : false;
 };
 //DeleteProductById
 export const DeleteProductById = async (productId: number) => {

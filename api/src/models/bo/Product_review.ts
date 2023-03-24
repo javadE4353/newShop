@@ -5,7 +5,7 @@ import { Products } from "../index.js";
 export interface AttributesProduct_review {
     id:number
     productId:number
-    parentId:number
+    parentId?:number
     title:string
     rating:number
     createdAt:Date
@@ -13,7 +13,9 @@ export interface AttributesProduct_review {
     context:string
 }
 
-export interface product_reviewInput extends Optional<AttributesProduct_review,"id">{}
+
+
+export interface product_reviewInput extends Optional<AttributesProduct_review,"id"|"parentId">{}
 
 @Table({
     freezeTableName:true,
