@@ -8,6 +8,7 @@ import * as usersService from "../service/userService.js";
 import { getPagination } from "../dal/dataSort/pagination.js";
 import { GetTokenByNameAndUserId } from "../service/tokenService.js";
 import jwt from "jsonwebtoken";
+import { RemoveImage } from "../helper/removeImage.js";
 
 //createUsers
 export const create = async (req: Request, res: Response) => {
@@ -19,21 +20,45 @@ export const create = async (req: Request, res: Response) => {
       code: 400,
       data: error.array(),
     });
+    if(req.body.image){
+      RemoveImage(req.body.image)
+    }
     return;
   }
-  const newUser = await usersService.create(req.body);
-  if (newUser === false) {
-    response({
-      res,
-      message: messageResponse.postAndUpdateUsers[400],
-      code: 400,
-    });
-  } else {
+  const newUser:boolean = await usersService.create(req.body);
+  if (newUser){
     response({
       res,
       message: messageResponse.postAndUpdateUsers[201],
       code: 201,
       data: req.body.username,
+    });
+  }
+};
+
+//updateUser
+export const updateUser = async (req: Request, res: Response) => {
+  const error = validationResult(req);
+  const id = Number(req.params.userId);
+  if (!!error.array().length) {
+    response({
+      res,
+      message: messageResponse.postAndUpdateUsers[401],
+      code: 401,
+      data: error.array(),
+    });
+    if(req.body.image){
+      RemoveImage(req.body.image)
+    }
+    return;
+  }
+  const update:boolean = await usersService.updata(id, req.body);
+  if (update){
+    response({
+      res,
+      message: messageResponse.postAndUpdateUsers[200],
+      code: 200,
+      data: update,
     });
   }
 };
@@ -104,37 +129,6 @@ export const getByIdUser = async (req: Request, res: Response) => {
       message: messageResponse.getUsers[200],
       code: 200,
       data: user,
-    });
-  }
-};
-
-//updateUser
-
-export const updateUser = async (req: Request, res: Response) => {
-  const error = validationResult(req);
-  const id = Number(req.params.userId);
-  if (!!error.array().length) {
-    response({
-      res,
-      message: messageResponse.postAndUpdateUsers[401],
-      code: 401,
-      data: error.array(),
-    });
-    return;
-  }
-  const update = await usersService.updata(id, req.body);
-  if (update === false) {
-    response({
-      res,
-      message: messageResponse.postAndUpdateUsers[400],
-      code: 400,
-    });
-  } else {
-    response({
-      res,
-      message: messageResponse.postAndUpdateUsers[200],
-      code: 200,
-      data: update,
     });
   }
 };

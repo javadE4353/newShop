@@ -1,21 +1,21 @@
-import { Op } from "sequelize";
+import { Op, Transaction } from "sequelize";
 import { paginationData } from "./dataSort/pagination.js";
 import { RemoveImage } from "../helper/removeImage.js";
 import { sequelize } from "../models/sequelize.js";
 import Permission from "../models/bo/Premission.js";
-import Products from "../models/bo/Product.js";
 import Role from "../models/bo/Role.js";
 import Token from "../models/bo/Token.js";
 import User, { RoleUsers, UpdateUser, UserAttributesOutput, UserInput } from "../models/bo/User.js";
 
 //createUsers
-export const create = async (payload: UserInput) => {
-  const create = await User.create(payload);
-  if (!!create.toJSON()?.id === false) {
-    return false;
-  } else {
-    return true;
-  }
+export const create = async (payload: UserInput,t:Transaction) => {
+  const create = await User.create(payload,{transaction:t});
+  return create?true:false;
+};
+//updateUser
+export const update = async (id: number, payload: UpdateUser,t:Transaction): Promise<boolean> => {
+  const update = await User.update({ ...payload }, { where: { id },transaction:t });
+  return !!update[0]?true:false;
 };
 //getallusers
 export const getAllUsers = async (
@@ -63,30 +63,8 @@ export const getAllUsers = async (
 };
 
 //getByIdUser
-export const getByIdUser = async (id: number): Promise<RoleUsers | boolean> => {
-  const userpro = await User.findByPk(id, {
-    //   attributes: { exclude: ["id", "roleId", "password"] },
-    attributes: ["firstname", "lastname", "mobile", "email", "username", "image", "active"],
-    include: [
-      {
-        model: Role,
-        attributes: ["name"],
-        include: [
-          {
-            model: Permission,
-            attributes: [[sequelize.fn("sum", sequelize.col("bits")), "permission"]],
-            through: { attributes: [] },
-          },
-        ],
-      },
-      {
-        model: Products,
-      },
-    ],
-  });
-  console.log(userpro);
+export const getByIdUser = async (id:number,t?:Transaction): Promise<RoleUsers | boolean> => {
   const user = await User.findByPk(id, {
-    //   attributes: { exclude: ["id", "roleId", "password"] },
     attributes: ["firstname", "lastname", "mobile", "email", "username", "image", "active"],
     include: [
       {
@@ -101,15 +79,16 @@ export const getByIdUser = async (id: number): Promise<RoleUsers | boolean> => {
         ],
       },
     ],
+    transaction:t
   });
-  if (!user || !user.toJSON()?.username) {
-    return false;
-  } else {
+  if(user){
     const newRole = {
       role: user.role.name,
       permission: Number(user.role.permissons[0].toJSON().permission),
     };
     return { ...user.toJSON(), role: newRole };
+  }else{
+      return false
   }
 };
 //getByIdUser
@@ -144,22 +123,6 @@ export const getByUsernameAndEmail = async (
     return { ...user.toJSON(), role: newRole };
   }
 };
-
-//updateUser
-
-export const update = async (id: number, payload: UpdateUser): Promise<boolean> => {
-  const img=await User.findByPk(id)
-  const update = await User.update({ ...payload }, { where: { id } });
-  if (!update[0]) {
-    return false;
-  } else {
-    if(img){
-      RemoveImage(img?.toJSON().image);
-    }
-    return !!update[0];
-  }
-};
-
 //RemoveUsersBYiD
 
 export const deleteById = async (id: number): Promise<boolean> => {

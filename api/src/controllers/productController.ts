@@ -2,17 +2,15 @@ import { Request, Response } from "express";
 
 import {v4 as uuidv4}from "uuid"
 import { validationResult } from "express-validator";
-import { Transaction } from "sequelize";
 import messageResponse from "../util/messageResponse.json" assert{type:"json"}
 //
 import { response } from "../helper/customResponse.js";
 import * as productsService from "../service/productsService.js";
 import { RemoveImage } from "../helper/removeImage.js";
-import { sequelize } from "../models/sequelize.js";
+import { getPagination } from "../dal/dataSort/pagination.js";
 
 //createProduct
 export const createProduct = async (req: Request, res: Response) => {
-
     const sku=uuidv4();
     const type=uuidv4();
     req.body.sku=sku
@@ -33,21 +31,14 @@ export const createProduct = async (req: Request, res: Response) => {
     }
   //
   const product:boolean=await productsService.CreateProduct(req.body)
-  if(product){
-   response({
-    res,
-    message:messageResponse.products[201],
-    code:201,
-    data:req.body.title
-   })
-  }else{
+   if(product){
     response({
       res,
-      message:messageResponse.products[500],
-      code:500,
+      message:messageResponse.products[201],
+      code:201,
+      data:req.body.title
      })
-  }
-
+   }
 };
 //insertProductOnCategory
 export const insertProductOnCategory = async (req: Request, res: Response) => {
@@ -63,8 +54,7 @@ export const insertProductOnCategory = async (req: Request, res: Response) => {
       })
       return
     }
-    sequelize.transaction(async(t_Insert_proOnCat:Transaction)=>{
-      const newpro = await productsService.InsertProductOnCategory(categoryId,productId,t_Insert_proOnCat);
+  const newpro = await productsService.InsertProductOnCategory(categoryId,productId);
     if(newpro) {
       response({
         res,
@@ -72,14 +62,7 @@ export const insertProductOnCategory = async (req: Request, res: Response) => {
         code: 200,
         data: newpro,
       });
-    } else {
-      response({
-        res,
-        message:messageResponse.products[500],
-        code: 500,
-      });
-    }
-    })
+    } 
 };
 
 //GetProductById
@@ -114,7 +97,10 @@ export const getProductById = async (req: Request, res: Response) => {
 
 //GetProductsByTitle
 export const getProductsByTitle = async (req: Request, res: Response) => {
-    const title=req.query.title as string
+    const title:string | undefined=req.query.title?req.query.title as string:undefined
+    const size:number=req.query.size ?Number(req.query.size):1
+    const page:number=req.query.page?Number(req.query.page):0
+    const {limit,offset}=getPagination(page,size)  
     const error=validationResult(req)
     if(!!error.array().length){
       response({
@@ -125,13 +111,19 @@ export const getProductsByTitle = async (req: Request, res: Response) => {
       })
       return
     }
-    const newpro = await productsService.GetProductsByTitle(title);
-    if(newpro !==false){
+    const products = await productsService.GetProductsByTitle(title,offset,limit);
+    if(products !==false){
      response({
        res,
        message: messageResponse.products[200],
        code: 200,
-       data: newpro,
+       data: products.data,
+       count:products.count,
+       totalPages:products.totalPages,
+       currentPage:products.currentPage,
+       nextPage:products.nextPage,
+       previousPage:products.previousPage,
+       
      });
    }else{
      response({
@@ -167,12 +159,6 @@ export const UpdateProductOnCategory = async (req: Request, res: Response) => {
       code: 200,
       data: newpro,
     });
-  } else{
-    response({
-      res,
-      message: messageResponse.products[500],
-      code: 500,
-    });
   }
 };
 //UpdateProductById
@@ -199,12 +185,6 @@ export const UpdateProductById = async (req: Request, res: Response) => {
       code: 200,
       data: newpro,
     });
-  } else{
-    response({
-      res,
-      message: messageResponse.products[500],
-      code: 500,
-    });
   }
 };
 
@@ -228,12 +208,6 @@ export const DeleteProductById = async (req: Request, res: Response) => {
       message: messageResponse.products[200],
       code: 200,
       data: newpro,
-    });
-  } else{
-    response({
-      res,
-      message: messageResponse.products[500],
-      code: 500,
     });
   }
 };

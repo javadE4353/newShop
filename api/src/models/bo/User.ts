@@ -19,9 +19,9 @@ import {
 import bcrypt from "bcrypt";
 
 //init
-import  Token  from "./Token.js";
+import Token from "./Token.js";
 import Role from "./Role.js";
-// import  {Products}  from "../index.js";
+import  {Cart}  from "../index.js";
 
 export interface PermissionRoleUsers {
   role: string;
@@ -162,10 +162,12 @@ class User extends Model<UserAttributes, UserInput> implements UserAttributes {
 
   @HasMany(() => Token)
   tokens!: Token[];
-
+  
   @BelongsTo(() => Role)
   role!: Role;
-
+  
+  @HasMany(() => Cart)
+  carts!: Cart[];
   // @HasMany(() => Products)
   // products!: Products[];
 }

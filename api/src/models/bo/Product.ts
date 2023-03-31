@@ -91,7 +91,7 @@ export interface UpdateProduct {
   summary?: string;
   type?: string;
   price?: number;
-  // images?: string[];
+  images?: string;
   discount?: number;
   quantity?: number;
   shop?: number;

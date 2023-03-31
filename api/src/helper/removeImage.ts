@@ -15,6 +15,7 @@ export const RemoveImage = (path: string | string[] | undefined, error = 0) => {
         })
         .catch(() => {
           console.log("ERROR");
+          throw new Error("Request Filed")
         });
     }
   } else if (!!error === false && typeof path === "string") {
@@ -29,6 +30,7 @@ export const RemoveImage = (path: string | string[] | undefined, error = 0) => {
         })
         .catch(() => {
           console.log("ERROR");
+          throw new Error("Request Filed")
         });
     }
   } else if (!!error === false && path instanceof Array) {
@@ -44,6 +46,7 @@ export const RemoveImage = (path: string | string[] | undefined, error = 0) => {
           })
           .catch(() => {
             console.log("ERROR");
+            throw new Error("Request Filed")
           });
       }
     });

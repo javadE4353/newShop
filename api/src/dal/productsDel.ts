@@ -4,8 +4,8 @@ import _ from "lodash";
 import { Op, Transaction } from "sequelize";
 import Categorys from "../models/bo/Category.js";
 import User from "../models/bo/User.js";
-import { RemoveImage } from "../helper/removeImage.js";
-import { Product_review } from "../models/index.js";
+import {Product_review, Role } from "../models/index.js";
+import { conditionGetAllProducts } from "./dataSort/halperProducts.js";
 
 //InsertProductOnCategory
 export const InsertProductOnCategory = async (
@@ -16,11 +16,11 @@ export const InsertProductOnCategory = async (
 ): Promise<boolean> => {
   const cat= await Categorys.findByPk(categoryId,{transaction:t});
   if(!cat){
-     throw new Error("error")
+   return false
   }
   const insertProOnCate = await Product_category.create({ categoryId, productId },{transaction:t});
   if (!insertProOnCate) {
-    throw new Error("error")
+  return false
   } else {
     return true;
   }
@@ -33,7 +33,7 @@ export const UpdateProductOnCategory = async (
 ): Promise<boolean> => {
   const updateProOnCate = await Product_category.findOne({where: { productId },transaction:t});
   if (!updateProOnCate) {
-    throw new Error("error")
+    return false
   } else {
     updateProOnCate.set({
       categoryId,
@@ -51,9 +51,9 @@ export const CreateProduct = async (data: ProductInput,t:Transaction): Promise<n
 };
 
 // GetProductByTitel
-export const GetProductsByTitle = async (productTitle: string) => {
-  const pro = await Products.findAll({
-    where: { title: { [Op.substring]: productTitle } },
+export const GetProductsByTitle = async (productTitle:  string | undefined,offset:number,limit:number) => {
+  const pro = await Products.findAndCountAll({
+    where: conditionGetAllProducts(productTitle,Op),
     include: [
       {
         model: Categorys,
@@ -61,25 +61,28 @@ export const GetProductsByTitle = async (productTitle: string) => {
       },
       {
         model: User,
+        attributes:{
+          exclude:["password","roleId","createdAt","updatedAt","deletionDate"]
+        },
+        include:[
+          {
+            model:Role,
+            attributes:["name"],
+          }
+        ]
       },
       {
         model: Product_review,
       },
     ],
+    offset,
+    limit
   });
-  if (!pro) {
-    return false;
-  } else {
-    const newpro = pro.map((p) => {
-      p.images = JSON.parse(`${p.images}`);
-      return p;
-    });
-    return newpro;
-  }
+  return pro?pro:false
 };
 
 //GetProductById
-export const GetProductById = async (productId: number) => {
+export const GetProductById = async (productId: number,t?:Transaction) => {
   const pro = await Products.findOne({
     where: { id: productId },
     include: [
@@ -87,12 +90,25 @@ export const GetProductById = async (productId: number) => {
         model: Categorys,
         through: { attributes: [] },
       },
-        {
-          model: User,
+      {
+        model: User,
+        attributes:{
+          exclude:["password","roleId","createdAt","updatedAt","deletionDate"]
         },
+        include:[
+          {
+            model:Role,
+            attributes:["name"],
+          }
+        ]
+      },
+      {
+        model: Product_review,
+      },
     ],
+    transaction:t
   });
- return pro?pro:false
+ return pro?{...pro,images:JSON.parse(`${pro.toJSON().images}`)}:false
 };
 //UpdateProduct
 export const UpdateProductById = async (data: UpdateProduct, productId: number,  t:Transaction) => {
@@ -101,20 +117,13 @@ export const UpdateProductById = async (data: UpdateProduct, productId: number, 
   if(!!update[0] ){
    return true
   }else{
-   throw new Error("error")
+   return false
   }
 };
 //DeleteProductById
-export const DeleteProductById = async (productId: number) => {
-  const pro = await Products.findByPk(productId);
-  const remove = await Products.destroy({ where: { id: productId } });
-  if (!!remove && pro) {
-    const images: string[] = JSON.parse(`${pro.images}`);
-    RemoveImage(images);
-    return true;
-  } else {
-    return false;
-  }
+export const DeleteProductById = async (productId: number,t:Transaction) => {
+  const remove = await Products.destroy({ where: { id: productId },transaction:t });
+  return remove?true:false;
 };
 
 //Obtaining products based on the ID of the creator or

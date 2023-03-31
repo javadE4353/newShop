@@ -3,12 +3,12 @@ import {validationResult}from "express-validator"
 import { getPagination } from "../dal/dataSort/pagination.js";
 //
 import { response } from "../helper/customResponse.js";
+import { RemoveImage } from "../helper/removeImage.js";
 import * as categorysService from "../service/categoryService.js";
 import messageResponse from "../util/messageResponse.json" assert { type: "json" };
 
 //CreateNewCategory
 export const CreateNewCategory = async (req: Request, res: Response) => {
-   
   const error=validationResult(req);
   if(!!error.array().length){
     response({
@@ -17,24 +17,18 @@ export const CreateNewCategory = async (req: Request, res: Response) => {
       code:400,
       data:error.array()
     })
+    RemoveImage(req.body.image)
     return
   }
-  const NewCategory=await categorysService.createNewCategory(req.body)
-  if(NewCategory===false){
-    response({
-      res,
-      message:messageResponse.category[401],
-      code:401
-    })
-  }else{
-    response({
-      res,
-      message:messageResponse.category[201],
-      code:201,
-      data:NewCategory
-    })
-  }
-
+  const NewCategory:boolean=await categorysService.createNewCategory(req.body)
+  if(NewCategory){
+      response({
+        res,
+        message:messageResponse.category[201],
+        code:201,
+        data:NewCategory
+      })
+    }
 };
 //UpdateByIdCategory
 export const UpdateByIdCategory = async (req: Request, res: Response) => {
@@ -47,16 +41,11 @@ export const UpdateByIdCategory = async (req: Request, res: Response) => {
       code:400,
       data:error.array()
     })
+    RemoveImage(req.body.image)
     return
   }
   const update=await categorysService.UpdateByIdCategory(req.body,categoryId)
-  if(update===false){
-    response({
-      res,
-      message:messageResponse.category[401],
-      code:401
-    })
-  }else{
+  if(update){
     response({
       res,
       message:messageResponse.category[200],

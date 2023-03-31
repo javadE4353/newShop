@@ -28,3 +28,4 @@ export const createRefreshToken = (username: string, role: Role) => {
   );
   return refreshToken;
 };
+

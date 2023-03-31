@@ -29,6 +29,7 @@ declare global {
       IDLE: number;
       SECRET_ACCESSTOKEN: string;
       SECRET_REFRESHTOKEN: string;
+      TOKEN_CART:string
     }
   }
 

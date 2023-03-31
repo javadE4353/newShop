@@ -117,7 +117,7 @@ export const validate=new(class Validate{
                 const id=Number(productId)
               if(Number.isInteger(id)){
                 const pro=await Products.findByPk(id)
-                return pro?true:Promise.reject("there is not user By productId")
+                return pro?true:Promise.reject("there is not productId")
               }else{
                 return Promise.reject("invalid productId")
               }

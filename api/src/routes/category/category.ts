@@ -7,7 +7,7 @@ const categoryRouter = Router();
 
 categoryRouter.post(
   "/",
-  UploadSingleImage("category","category"),
+  UploadSingleImage("category", "category"),
   validate.create(),
   ConfigUploadeFile,
   controller.CreateNewCategory
@@ -17,7 +17,7 @@ categoryRouter.get("/:categoryId", validate.getById(), controller.GetByIdCategor
 categoryRouter.get("/", controller.GetByTilteCategory);
 categoryRouter.put(
   "/:categoryId",
-  UploadSingleImage("category","category"),
+  UploadSingleImage("category", "category"),
   validate.update(),
   ConfigUploadeFile,
   controller.UpdateByIdCategory
