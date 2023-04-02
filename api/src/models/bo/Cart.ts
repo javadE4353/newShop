@@ -22,7 +22,7 @@ interface AttributesCart {
   userId: number;
   sessionId: string;
   token: string;
-  status: boolean;
+  status: number;
   mobile: string;
   email: string;
   lin1: string;
@@ -33,6 +33,23 @@ interface AttributesCart {
   createdAt: string;
   updatedAt: string;
   content: string;
+}
+export interface GetCartAttributes {
+  id: number;
+  userId?: number;
+  sessionId?: string;
+  token: string;
+  status: number;
+  mobile: string;
+  email: string;
+  lin1?: string;
+  lin2?: string;
+  city: string;
+  province?: string;
+  country?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  content?: string;
 }
 
 export interface CartInput extends Optional<AttributesCart, "id"|"createdAt"|"updatedAt"> {}
@@ -59,8 +76,8 @@ class Cart extends Model<AttributesCart, CartInput> {
   @Column({ type: DataType.STRING })
   token!: boolean;
 
-  @Column({ type: DataType.STRING })
-  status!: boolean;
+  @Column({ type: DataType.INTEGER })
+  status!: number;
 
   @Default(null)
   @Column({ type: DataType.STRING })

@@ -1,13 +1,13 @@
 
-export const conditionGetAllCart=(status:string|undefined,userId:number | null,Op:any):any=>{
+export const conditionGetAllCart=(token:string|undefined,userId:number | null,Op:any):any=>{
     let option;
-       if(status && !userId){
-           option={status:{[Op.substring]:status}}
-       }else if(userId && !status){
+       if(token && !userId){
+           option={token:{[Op.substring]:token}}
+       }else if(userId && !token){
         option={userId:userId}
-       }else if(userId && status){
+       }else if(userId && token){
          option={
-            status:{[Op.substring]:status},
+            token:{[Op.substring]:token},
             userId:userId
          }  
        }

@@ -6,11 +6,13 @@ import _ from "lodash";
 import { CartInput } from "../models/bo/Cart.js";
 import { CartItemsInput } from "../models/bo/CartItems.js";
 import * as cartItemsService from "./cartItemsService.js";
+import { StatusCart } from "../util/statusCart.js";
 
 export const CreateCart = async (dataCart: CartInput, dataCartItems: CartItemsInput[]) => {
 
   //token
   dataCart.token = uuidv4();
+  dataCart.status =StatusCart.Registered
   //createCart
   const result:boolean = await sequelize.transaction(async (t: Transaction) => {
     const cartCreate: number = await cartDel.CreateCart(dataCart, t);
@@ -65,8 +67,8 @@ export const GetCartByUserId=async(userId:number)=>{
 }
 
 //GetAllCart
-export const GetAllCart=async(status:string,userId:number)=>{
-  const cart=await cartDel.GetAllCart(status,userId)
+export const GetAllCart=async(token:string,userId:number)=>{
+  const cart=await cartDel.GetAllCart(token,userId)
   if(cart ===false){
     return false
   }else{

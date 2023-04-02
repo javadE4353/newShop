@@ -1,6 +1,7 @@
 import { Op, Transaction } from "sequelize"
 import { CartInput } from "../models/bo/Cart.js"
 import { Cart, CartItems, Role, User } from "../models/index.js"
+import { sequelize } from "../models/sequelize.js"
 import { conditionGetAllCart } from "./dataSort/helperCartDel.js"
 
 //CreateCart
@@ -64,9 +65,9 @@ export const GetCartByUserId=async(userId:number)=>{
 
 } 
 //GetAllCart
-export const GetAllCart=async(status:string,userId:number)=>{
+export const GetAllCart=async(token:string,userId:number)=>{
     const cart=await Cart.findAll({
-        where:conditionGetAllCart(status,userId,Op),
+        where:conditionGetAllCart(token,userId,Op),
         include:[
             {
                 model:CartItems,
